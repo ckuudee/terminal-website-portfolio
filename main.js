@@ -1,4 +1,4 @@
-import { help, aboutme } from "./commands.js";
+import {help, aboutme} from "./commands.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const terminal = document.querySelector(".terminal");
@@ -50,6 +50,9 @@ document.addEventListener("DOMContentLoaded", () => {
             case "aboutme":
                 output.innerHTML = aboutme;
                 break;
+            case "linkedin":
+                openTab("https://www.linkedin.com/in/codyhoang/");
+                break;
             default:
                 output.textContent = `${command}: command not found`;
         }
@@ -62,5 +65,8 @@ document.addEventListener("DOMContentLoaded", () => {
         terminal.scrollTop = terminal.scrollHeight;
     }
 
+    function openTab(link) {
+        window.open(link);
+    }
     createPrompt();
 });

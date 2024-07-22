@@ -1,7 +1,9 @@
-import {help, aboutme} from "./commands.js";
+import { help, aboutme } from "./commands.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const terminal = document.querySelector(".terminal");
+    const previousCommands = [];
+    let commandIndex = -1;
 
     function createPrompt() {
         const promptDiv = document.createElement("div");
@@ -20,22 +22,50 @@ document.addEventListener("DOMContentLoaded", () => {
         terminal.appendChild(promptDiv);
         const inputField = promptDiv.querySelector(".input");
 
-        inputField.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                const input = inputField.value.trim();
-                if (input !== "") {
-                    handleCommand(input, promptDiv);
-                }
-                inputField.disabled = true;
-                inputField.classList.remove("input");
-                inputField.classList.add("completed-input");
-                createPrompt();
-            }
-        });
+        inputField.addEventListener("keydown", (event) => handleKeyDown(event, inputField, promptDiv));
 
         inputField.focus();
         scrollToCurrentInput();
+    }
+
+    function handleKeyDown(event, inputField, promptDiv) {
+        if (event.key === "Enter") {
+            handleEnterKey(inputField, promptDiv);
+        } else if (event.key === "ArrowUp") {
+            handleUpArrow(inputField);
+        } else if (event.key === "ArrowDown") {
+            handleDownArrow(inputField);
+        }
+    }
+
+    function handleEnterKey(inputField, promptDiv) {
+        const input = inputField.value.trim();
+        if (input !== "") {
+            previousCommands.push(input);
+            commandIndex = previousCommands.length;
+            handleCommand(input, promptDiv);
+        }
+        inputField.disabled = true;
+        inputField.classList.remove("input");
+        inputField.classList.add("completed-input");
+        createPrompt();
+    }
+
+    function handleUpArrow(inputField) {
+        if (previousCommands.length > 0 && commandIndex > 0) {
+            commandIndex--;
+            inputField.value = previousCommands[commandIndex];
+        }
+    }
+
+    function handleDownArrow(inputField) {
+        if (previousCommands.length > 0 && commandIndex < previousCommands.length - 1) {
+            commandIndex++;
+            inputField.value = previousCommands[commandIndex];
+        } else {
+            commandIndex = previousCommands.length;
+            inputField.value = "";
+        }
     }
 
     function handleCommand(input, promptDiv) {
@@ -58,7 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         promptDiv.appendChild(output);
-        terminal.scrollTop = terminal.scrollHeight;
+        scrollToCurrentInput();
     }
 
     function scrollToCurrentInput() {
@@ -68,5 +98,6 @@ document.addEventListener("DOMContentLoaded", () => {
     function openTab(link) {
         window.open(link);
     }
+
     createPrompt();
 });

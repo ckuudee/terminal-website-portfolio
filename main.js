@@ -1,4 +1,4 @@
-import { help, aboutme } from "./commands.js";
+import { help, aboutme, linkedin, youtube } from "./commands.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const terminal = document.querySelector(".terminal");
@@ -15,7 +15,7 @@ document.addEventListener("DOMContentLoaded", () => {
                 <span style="color: yellowgreen;">@</span>
                 <span style="color: ghostwhite;">ckuudee.com</span>
                 <span style="color: lightblue;">:~$</span>
-                <input type="text" class="input" id="prompt" autocomplete="off" autofocus>
+                <input type="text" class="input blinking-cursor" id="prompt" autocomplete="off" autofocus>
             </div>
         `;
 
@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
         inputField.disabled = true;
         inputField.classList.remove("input");
         inputField.classList.add("completed-input");
+        inputField.classList.remove("blinking-cursor");
         createPrompt();
     }
 
@@ -75,28 +76,61 @@ document.addEventListener("DOMContentLoaded", () => {
 
         switch (command) {
             case "help":
-                output.innerHTML = help;
+                typeTextArray(help, output);
                 break;
             case "aboutme":
-                output.innerHTML = aboutme;
+                typeTextArray(aboutme, output);
                 break;
             case "linkedin":
-                openTab("https://www.linkedin.com/in/codyhoang/");
+                typeText("Opening LinkedIn...", output, () => newTab(linkedin));
+                break;
+            case "youtube":
+                typeTextArray(youtube, output);
                 break;
             default:
-                output.textContent = `${command}: command not found`;
+                typeText(`${command}: command not found`, output);
         }
 
         promptDiv.appendChild(output);
         scrollToCurrentInput();
     }
 
+    function typeTextArray(lines, element, speed = 20) {
+        let lineIndex = 0;
+        function typeLine() {
+            if (lineIndex < lines.length) {
+                typeText(lines[lineIndex], element, () => {
+                    element.innerHTML += "<br>";
+                    lineIndex++;
+                    typeLine();
+                }, speed);
+            }
+        }
+        typeLine();
+    }
+
+    function typeText(text, element, callback = null, speed = 20) {
+        let i = 0;
+        function type() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            } else if (callback) {
+                callback();
+            }
+        }
+        type();
+    }
+
     function scrollToCurrentInput() {
         terminal.scrollTop = terminal.scrollHeight;
     }
 
-    function openTab(link) {
-        window.open(link);
+    function newTab(link) {
+        setTimeout(() => {
+            window.open(link, "_blank");
+        }, 500);
     }
 
     createPrompt();

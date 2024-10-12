@@ -1,7 +1,9 @@
-import {help, aboutme} from "./commands.js";
+import { help, aboutme, linkedin, github, youtube, resume, email } from "./commands.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     const terminal = document.querySelector(".terminal");
+    const previousCommands = [];
+    let commandIndex = -1;
 
     function createPrompt() {
         const promptDiv = document.createElement("div");
@@ -20,22 +22,51 @@ document.addEventListener("DOMContentLoaded", () => {
         terminal.appendChild(promptDiv);
         const inputField = promptDiv.querySelector(".input");
 
-        inputField.addEventListener("keydown", (event) => {
-            if (event.key === "Enter") {
-                event.preventDefault();
-                const input = inputField.value.trim();
-                if (input !== "") {
-                    handleCommand(input, promptDiv);
-                }
-                inputField.disabled = true;
-                inputField.classList.remove("input");
-                inputField.classList.add("completed-input");
-                createPrompt();
-            }
-        });
+        inputField.addEventListener("keydown", (event) => handleKeyDown(event, inputField, promptDiv));
 
         inputField.focus();
         scrollToCurrentInput();
+    }
+
+    function handleKeyDown(event, inputField, promptDiv) {
+        if (event.key === "Enter") {
+            handleEnterKey(inputField, promptDiv);
+        } else if (event.key === "ArrowUp") {
+            handleUpArrow(inputField);
+        } else if (event.key === "ArrowDown") {
+            handleDownArrow(inputField);
+        }
+    }
+
+    function handleEnterKey(inputField, promptDiv) {
+        const input = inputField.value.trim();
+        if (input !== "") {
+            previousCommands.push(input);
+            commandIndex = previousCommands.length;
+            handleCommand(input, promptDiv);
+        }
+        inputField.disabled = true;
+        inputField.classList.remove("input");
+        inputField.classList.add("completed-input");
+        inputField.classList.remove("blinking-cursor");
+        createPrompt();
+    }
+
+    function handleUpArrow(inputField) {
+        if (previousCommands.length > 0 && commandIndex > 0) {
+            commandIndex--;
+            inputField.value = previousCommands[commandIndex];
+        }
+    }
+
+    function handleDownArrow(inputField) {
+        if (previousCommands.length > 0 && commandIndex < previousCommands.length - 1) {
+            commandIndex++;
+            inputField.value = previousCommands[commandIndex];
+        } else {
+            commandIndex = previousCommands.length;
+            inputField.value = "";
+        }
     }
 
     function handleCommand(input, promptDiv) {
@@ -45,21 +76,82 @@ document.addEventListener("DOMContentLoaded", () => {
 
         switch (command) {
             case "help":
-                output.innerHTML = help;
+                typeTextArray(help, output);
                 break;
             case "aboutme":
-                output.innerHTML = aboutme;
+                typeTextArray(aboutme, output);
                 break;
+            case "linkedin":
+                typeText("Opening LinkedIn...", output, () => newTab(linkedin));
+                break;
+            case "github":
+                typeText("Opening GitHub...", output, () => newTab(github));
+                break;
+            case "youtube":
+                typeText("Opening YouTube...", output, () => newTab(youtube));
+                break;
+            case "resume":
+                typeText("Opening resume...", output, () => newTab(resume));
+                break;
+            case "email":
+                typeText(`Opening mailto: codyhoang2005@gmail.com...`, output, () => newTab(email));
+                break;
+            case "clear":
+                clearTerminal();
+                return;
             default:
-                output.textContent = `${command}: command not found`;
+                typeText(`${command}: command not found`, output);
         }
 
         promptDiv.appendChild(output);
-        terminal.scrollTop = terminal.scrollHeight;
+        scrollToCurrentInput();
+    }
+
+    function typeTextArray(lines, element, speed = 14) {
+        let lineIndex = 0;
+        function typeLine() {
+            if (lineIndex < lines.length) {
+                typeText(lines[lineIndex], element, () => {
+                    element.innerHTML += "<br>";
+                    lineIndex++;
+                    typeLine();
+                }, speed);
+            }
+        }
+        typeLine();
+    }
+
+    function typeText(text, element, callback = null, speed = 14) {
+        let i = 0;
+        function type() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+            } else if (callback) {
+                callback();
+            }
+        }
+        type();
     }
 
     function scrollToCurrentInput() {
         terminal.scrollTop = terminal.scrollHeight;
+    }
+
+    function newTab(link) {
+        if (link.startsWith("mailto:")) {
+            window.location.href = link;
+        } else {
+            setTimeout(() => {
+                window.open(link, "_blank");
+            }, 500);
+        }
+    }
+
+    function clearTerminal() {
+        const terminal = document.querySelector(".terminal");
+        terminal.innerHTML = '';
     }
 
     createPrompt();
